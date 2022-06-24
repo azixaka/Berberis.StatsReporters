@@ -14,9 +14,9 @@ public sealed class StatsRequestHandler
         _statsReporterFactory = statsReporterFactory;
     }
 
-    public Task GetSystemInfo(HttpContext context)
+    public async Task GetSystemInfo(HttpContext context)
     {
-        using var writer = new Utf8JsonWriter(context.Response.Body);
+        await using var writer = new Utf8JsonWriter(context.Response.Body);
         writer.WriteStartObject();
 
         foreach (var kvp in _statsReporterFactory.GetSystemInfo())
@@ -25,13 +25,11 @@ public sealed class StatsRequestHandler
         }
 
         writer.WriteEndObject();
-
-        return Task.CompletedTask;
     }
 
-    public Task GetNetworkInfo(HttpContext context)
+    public async Task GetNetworkInfo(HttpContext context)
     {
-        using var writer = new Utf8JsonWriter(context.Response.Body);
+        await using var writer = new Utf8JsonWriter(context.Response.Body);
 
         writer.WriteStartObject();
         writer.WritePropertyName("Network Interfaces");
@@ -51,15 +49,13 @@ public sealed class StatsRequestHandler
 
         writer.WriteEndArray();
         writer.WriteEndObject();
-
-        return Task.CompletedTask;
     }
 
-    public Task GetSystemStats(HttpContext context)
+    public async Task GetSystemStats(HttpContext context)
     {
         var systemStats = _statsReporterFactory.GetSystemStats();
 
-        using var writer = new Utf8JsonWriter(context.Response.Body);
+        await using var writer = new Utf8JsonWriter(context.Response.Body);
 
         writer.WriteStartObject();
 
@@ -84,15 +80,13 @@ public sealed class StatsRequestHandler
         writer.WriteNumber("WorkItems", systemStats.PendingThreadPoolWorkItems);
 
         writer.WriteEndObject();
-
-        return Task.CompletedTask;
     }
 
-    public Task GetNetworkStats(HttpContext context)
+    public async Task GetNetworkStats(HttpContext context)
     {
         var stats = _statsReporterFactory.GetNetworkStats();
 
-        using var writer = new Utf8JsonWriter(context.Response.Body);
+        await using var writer = new Utf8JsonWriter(context.Response.Body);
 
         writer.WriteStartObject();
 
@@ -103,13 +97,11 @@ public sealed class StatsRequestHandler
         writer.WriteNumber("SndS", stats.SentBytesPerSecond);
 
         writer.WriteEndObject();
-
-        return Task.CompletedTask;
     }
 
-    public Task ListReporters(HttpContext context)
+    public async Task ListReporters(HttpContext context)
     {
-        using var writer = new Utf8JsonWriter(context.Response.Body);
+        await using var writer = new Utf8JsonWriter(context.Response.Body);
 
         writer.WriteStartObject();
         writer.WritePropertyName("Reporters");
@@ -122,17 +114,15 @@ public sealed class StatsRequestHandler
 
         writer.WriteEndArray();
         writer.WriteEndObject();
-
-        return Task.CompletedTask;
     }
 
-    public Task GetReporterStats(HttpContext context)
+    public async Task GetReporterStats(HttpContext context)
     {
         var source = HttpUtility.UrlDecode(context.Request.RouteValues["source"].ToString());
 
         var systemStats = _statsReporterFactory.GetReporterStats(source);
 
-        using var writer = new Utf8JsonWriter(context.Response.Body);
+        await using var writer = new Utf8JsonWriter(context.Response.Body);
 
         writer.WriteStartObject();
 
@@ -144,7 +134,5 @@ public sealed class StatsRequestHandler
         writer.WriteNumber("TB", systemStats.TotalBytes);
 
         writer.WriteEndObject();
-
-        return Task.CompletedTask;
     }
 }
