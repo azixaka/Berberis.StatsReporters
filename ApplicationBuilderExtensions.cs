@@ -47,7 +47,7 @@ public static class ApplicationBuilderExtensions
         return appBuilder;
     }
 
-    public static void MapGCOperations(IEndpointRouteBuilder endpoints, string prefix)
+    public static void MapGCOperations(this IEndpointRouteBuilder endpoints, string prefix)
     {
         endpoints.MapGet($"{prefix}dbg/gccollect", async context =>
         {
