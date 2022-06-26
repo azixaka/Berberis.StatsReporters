@@ -59,25 +59,25 @@ public sealed class StatsRequestHandler
 
         writer.WriteStartObject();
 
-        writer.WriteNumber("IMs", systemStats.IntervalMs);
-        writer.WriteNumber("CpuMs", systemStats.CpuTimeTotalMs);
-        writer.WriteNumber("CpuIMs", systemStats.CpuTimeIntMs);
-        writer.WriteNumber("CpuL", systemStats.CpuLoad);
-        writer.WriteNumber("G0", systemStats.Gc0Collections);
-        writer.WriteNumber("G1", systemStats.Gc1Collections);
-        writer.WriteNumber("G2", systemStats.Gc2Collections);
-        writer.WriteNumber("GCIndex", systemStats.GcIterationIndex);
-        writer.WriteNumber("GCPausePct", systemStats.PauseTimePercentage);
-        writer.WriteNumber("GCTimeBlockingMs", systemStats.GcTimeBlockingMs);
-        writer.WriteNumber("GCTimeBackgroundMs", systemStats.GcTimeBackgroundMs);
-        writer.WriteNumber("G0s", systemStats.TotalGc0s);
-        writer.WriteNumber("G1s", systemStats.TotalGc1s);
-        writer.WriteNumber("G2s", systemStats.TotalGc2s);
-        writer.WriteNumber("WsB", systemStats.WorkSetBytes);
-        writer.WriteNumber("GcB", systemStats.GcMemory);
-        writer.WriteNumber("Threads", systemStats.NumberOfThreads);
-        writer.WriteNumber("TPThreads", systemStats.ThreadPoolThreads);
-        writer.WriteNumber("WorkItems", systemStats.PendingThreadPoolWorkItems);
+        WriteNumber(writer, "IMs", systemStats.IntervalMs);
+        WriteNumber(writer, "CpuMs", systemStats.CpuTimeTotalMs);
+        WriteNumber(writer, "CpuIMs", systemStats.CpuTimeIntMs);
+        WriteNumber(writer, "CpuL", systemStats.CpuLoad);
+        WriteNumber(writer, "G0", systemStats.Gc0Collections);
+        WriteNumber(writer, "G1", systemStats.Gc1Collections);
+        WriteNumber(writer, "G2", systemStats.Gc2Collections);
+        WriteNumber(writer, "GCIndex", systemStats.GcIterationIndex);
+        WriteNumber(writer, "GCPausePct", systemStats.PauseTimePercentage);
+        WriteNumber(writer, "GCTimeBlockingMs", systemStats.GcTimeBlockingMs);
+        WriteNumber(writer, "GCTimeBackgroundMs", systemStats.GcTimeBackgroundMs);
+        WriteNumber(writer, "G0s", systemStats.TotalGc0s);
+        WriteNumber(writer, "G1s", systemStats.TotalGc1s);
+        WriteNumber(writer, "G2s", systemStats.TotalGc2s);
+        WriteNumber(writer, "WsB", systemStats.WorkSetBytes);
+        WriteNumber(writer, "GcB", systemStats.GcMemory);
+        WriteNumber(writer, "Threads", systemStats.NumberOfThreads);
+        WriteNumber(writer, "TPThreads", systemStats.ThreadPoolThreads);
+        WriteNumber(writer, "WorkItems", systemStats.PendingThreadPoolWorkItems);
 
         writer.WriteEndObject();
     }
@@ -90,11 +90,11 @@ public sealed class StatsRequestHandler
 
         writer.WriteStartObject();
 
-        writer.WriteNumber("IMs", stats.IntervalMs);
-        writer.WriteNumber("RcvB", stats.BytesReceived);
-        writer.WriteNumber("SntB", stats.BytesSent);
-        writer.WriteNumber("RcvS", stats.ReceivedBytesPerSecond);
-        writer.WriteNumber("SndS", stats.SentBytesPerSecond);
+        WriteNumber(writer, "IMs", stats.IntervalMs);
+        WriteNumber(writer, "RcvB", stats.BytesReceived);
+        WriteNumber(writer, "SntB", stats.BytesSent);
+        WriteNumber(writer, "RcvS", stats.ReceivedBytesPerSecond);
+        WriteNumber(writer, "SndS", stats.SentBytesPerSecond);
 
         writer.WriteEndObject();
     }
@@ -126,13 +126,21 @@ public sealed class StatsRequestHandler
 
         writer.WriteStartObject();
 
-        writer.WriteNumber("IMs", systemStats.IntervalMs);
-        writer.WriteNumber("Mps", systemStats.MessagesPerSecond);
-        writer.WriteNumber("AST", systemStats.AvgServiceTime);
-        writer.WriteNumber("Msgs", systemStats.TotalMessages);
-        writer.WriteNumber("Bps", systemStats.BytesPerSecond);
-        writer.WriteNumber("TB", systemStats.TotalBytes);
+        WriteNumber(writer, "IMs", systemStats.IntervalMs);
+        WriteNumber(writer, "Mps", systemStats.MessagesPerSecond);
+        WriteNumber(writer, "AST", systemStats.AvgServiceTime);
+        WriteNumber(writer, "Msgs", systemStats.TotalMessages);
+        WriteNumber(writer, "Bps", systemStats.BytesPerSecond);
+        WriteNumber(writer, "TB", systemStats.TotalBytes);
 
         writer.WriteEndObject();
+    }
+
+    private static void WriteNumber(Utf8JsonWriter writer, string name, float value)
+    {
+        if (double.IsNaN(value) || double.IsInfinity(value))
+            writer.WriteNull(name);
+        else
+            writer.WriteNumber(name, value);
     }
 }
