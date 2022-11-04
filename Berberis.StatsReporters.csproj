@@ -9,7 +9,7 @@
 
 	<PropertyGroup>
 		<PackageId>Berberis.StatsReporters</PackageId>
-		<Version>1.0.5</Version>
+		<Version>1.0.6</Version>
 		<Company>Azik Gudratov</Company>
 		<Authors>Azik Gudratov</Authors>
 		<PackageDescription>Berberis StatsReporters is a set of System, Network and custom information and metrics providers</PackageDescription>
