@@ -67,8 +67,6 @@ public sealed class StatsReporter
             newTotal = currTotal + serviceTimeMs;
         } while (currTotal != Interlocked.CompareExchange(ref _totalServiceTime, newTotal, currTotal));
 
-
-        Interlocked.Exchange(ref _totalServiceTime, _totalServiceTime + serviceTimeMs);
         Interlocked.Add(ref _totalBytes, bytes);
 
         _changed = true;
@@ -108,7 +106,7 @@ public sealed class StatsReporter
         return new Stats(timePassed * 1000,
             intervalMessages / timePassed,
             totalMesssages,
-            intervalBytes,
+            intervalBytes / timePassed,
             totalBytes,
             avgServiceTime);
     }
