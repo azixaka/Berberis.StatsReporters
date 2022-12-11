@@ -53,6 +53,8 @@ public sealed class SystemStatsReporter
                     { "ThreadPool.MaxWorkerThreads", maxThreads.ToString() },
                     { "ThreadPool.MaxIOThreads", maxIoThreads.ToString() }
                 };
+
+        _lastTicks = Stopwatch.GetTimestamp();
     }
 
     public IReadOnlyDictionary<string, string> SystemInfo => _systemInfo;

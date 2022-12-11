@@ -32,6 +32,8 @@ public sealed class StatsReporter
     {
         Source = source;
         _disposeAction = disposeAction;
+
+        _lastTicks = Stopwatch.GetTimestamp();
     }
 
     public long Start()

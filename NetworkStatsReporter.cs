@@ -54,6 +54,8 @@ public sealed class NetworkStatsReporter
             }));
 
         _networkInterface = nis.FirstOrDefault(ni => ni.Name == networkInterfaceName);
+
+        _lastTicks = Stopwatch.GetTimestamp();
     }
 
     public IReadOnlyList<IReadOnlyDictionary<string, string>> NetworkInfo => _networkInfo;

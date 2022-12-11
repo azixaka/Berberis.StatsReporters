@@ -32,6 +32,8 @@ public sealed class ServiceTimeTracker
                 _svcTimePercentiles[i] = new MovingPercentile(percentileOptions[i]);
             }
         }
+
+        _lastTicks = GetTicks();
     }
 
     public PercentileOptions[] PercentileOptions { get; }
