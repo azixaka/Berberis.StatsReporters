@@ -15,45 +15,46 @@ public sealed class NetworkStatsReporter
 
     private readonly List<Dictionary<string, string>> _networkInfo;
 
-    private readonly NetworkInterface _networkInterface;
+    private readonly NetworkInterface[] _networkInterfaces;
 
-    public NetworkStatsReporter(string networkInterfaceName)
+    public NetworkStatsReporter()
     {
-        var nis = NetworkInterface.GetAllNetworkInterfaces();
+        _networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
 
-        _networkInfo = new List<Dictionary<string, string>>(
-            nis.Select(ni =>
-            {
-                string name = null;
-                try { name = ni.Name; } catch { }
+        if (_networkInterfaces == null)
+        {
+            _networkInfo = new List<Dictionary<string, string>>(
+                                            _networkInterfaces.Select(ni =>
+                                            {
+                                                string name = null;
+                                                try { name = ni.Name; } catch { }
 
-                string desc = null;
-                try { desc = ni.Description; } catch { }
+                                                string desc = null;
+                                                try { desc = ni.Description; } catch { }
 
-                string type = null;
-                try { type = ni.NetworkInterfaceType.ToString(); } catch { }
+                                                string type = null;
+                                                try { type = ni.NetworkInterfaceType.ToString(); } catch { }
 
-                string speed = null;
-                try { speed = ni.Speed.ToString(); } catch { }
+                                                string speed = null;
+                                                try { speed = ni.Speed.ToString(); } catch { }
 
-                string status = null;
-                try { status = ni.OperationalStatus.ToString(); } catch { }
+                                                string status = null;
+                                                try { status = ni.OperationalStatus.ToString(); } catch { }
 
-                string multicast = null;
-                try { multicast = ni.SupportsMulticast.ToString(); } catch { }
+                                                string multicast = null;
+                                                try { multicast = ni.SupportsMulticast.ToString(); } catch { }
 
-                return new Dictionary<string, string>
-                    {
-                            {"Name", name},
-                            {"Description", desc},
-                            {"Type", type},
-                            {"Speed", speed},
-                            {"Status", status},
-                            {"Multicast", multicast}
-                    };
-            }));
-
-        _networkInterface = nis.FirstOrDefault(ni => ni.Name == networkInterfaceName);
+                                                return new Dictionary<string, string>
+                                                    {
+                                                                    {"Name", name},
+                                                                    {"Description", desc},
+                                                                    {"Type", type},
+                                                                    {"Speed", speed},
+                                                                    {"Status", status},
+                                                                    {"Multicast", multicast}
+                                                    };
+                                            }));
+        }
 
         _lastTicks = Stopwatch.GetTimestamp();
     }
@@ -62,32 +63,44 @@ public sealed class NetworkStatsReporter
 
     public NetworkStats GetStats()
     {
-        lock (_syncObj)
+        if (_networkInterfaces != null)
         {
-            var ticks = Stopwatch.GetTimestamp();
-            float timePassed = (float)(ticks - _lastTicks) / Stopwatch.Frequency * 1000;
-            _lastTicks = ticks;
-
-            if (_networkInterface != null)
+            lock (_syncObj)
             {
-                // the LinuxIPInterfaceStatistics implementation relies on https://github.com/dotnet/corefx/blob/master/src/System.Net.NetworkInformation/src/System/Net/NetworkInformation/StringParsingHelpers.Statistics.cs
-                // which artificially limits all values read from Linux network stats table file to UInt64. Couldn't figure out why but it means stats stop after 4bln bytes sent/received.
+                var ticks = Stopwatch.GetTimestamp();
+                float timePassed = (float)(ticks - _lastTicks) / Stopwatch.Frequency * 1000;
+                _lastTicks = ticks;
 
-                var stats = _networkInterface.GetIPStatistics();
+                var ifaceStats = new (string Name, InterfaceStats Stats)[_networkInterfaces.Length];
 
-                var rcvd = stats.BytesReceived;
-                var intervalRcvBytes = (rcvd - _lastRcvBytes) * 1000 / timePassed;
-                _lastRcvBytes = rcvd;
+                for (var i = 0; i < _networkInterfaces.Length; i++)
+                {
+                    // the LinuxIPInterfaceStatistics implementation relies on https://github.com/dotnet/corefx/blob/master/src/System.Net.NetworkInformation/src/System/Net/NetworkInformation/StringParsingHelpers.Statistics.cs
+                    // which artificially limits all values read from Linux network stats table file to UInt64. Couldn't figure out why but it means stats stop after 4bln bytes sent/received.
 
-                var sent = stats.BytesSent;
-                var intervalSndBytes = (sent - _lastSndBytes) * 1000 / timePassed;
-                _lastSndBytes = sent;
+                    try
+                    {
+                        var ni = _networkInterfaces[i];
 
-                return new NetworkStats(timePassed, _lastRcvBytes, _lastSndBytes, intervalRcvBytes,
-                    intervalSndBytes);
+                        var stats = ni.GetIPStatistics();
+
+                        var rcvd = stats.BytesReceived;
+                        var intervalRcvBytes = (rcvd - _lastRcvBytes) * 1000 / timePassed;
+                        _lastRcvBytes = rcvd;
+
+                        var sent = stats.BytesSent;
+                        var intervalSndBytes = (sent - _lastSndBytes) * 1000 / timePassed;
+                        _lastSndBytes = sent;
+
+                        ifaceStats[i] = (ni.Name, new InterfaceStats(_lastRcvBytes, _lastSndBytes, intervalRcvBytes, intervalSndBytes));
+                    }
+                    catch { }
+                }
+
+                return new NetworkStats(timePassed, ifaceStats);
             }
-
-            return new NetworkStats(timePassed, -1, -1, 0, 0);
         }
+
+        return default;
     }
 }

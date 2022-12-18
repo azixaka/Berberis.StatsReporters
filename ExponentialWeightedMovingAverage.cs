@@ -7,7 +7,7 @@ public sealed class ExponentialWeightedMovingAverage
     private bool _initialised = false;
 
     // Smoothing/damping coefficient
-    private float _alpha;
+    private readonly float _alpha;
 
     public float AverageValue { get; private set; }
     public float MinValue { get; private set; }

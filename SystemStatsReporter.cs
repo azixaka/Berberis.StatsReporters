@@ -32,12 +32,16 @@ public sealed class SystemStatsReporter
         ThreadPool.GetMaxThreads(out var maxThreads, out var maxIoThreads);
 
         _systemInfo = new Dictionary<string, string>
-                {
+        {
                     {"Process Id", _process.Id.ToString()},
                     {"Process Name", _process.ProcessName},
                     {"Start Time", _process.StartTime.ToString("dd/MM/yyyy HH:mm:ss.fff")},
                     {"Command Line", Environment.CommandLine },
                     {"Process Path", Environment.ProcessPath },
+                    {"CurrentDirectory", Environment.CurrentDirectory },
+                    {"MachineName", Environment.MachineName },
+                    {"UserName", Environment.UserName },
+                    {"UserDomainName", Environment.UserDomainName },
                     {"CPU Cores", _cpus.ToString()},
                     {"CLR Version", Environment.Version.ToString()},
                     {"FrameworkDescription", RuntimeInformation.FrameworkDescription},
@@ -48,11 +52,13 @@ public sealed class SystemStatsReporter
                     {"App Version", AppVersion},
                     {"GC Server Mode", GCSettings.IsServerGC.ToString()},
                     {"GC Latency Mode", GCSettings.LatencyMode.ToString()},
+                    {"IsHighResolutionTimer", Stopwatch.IsHighResolution.ToString() },
+                    {"TimerFrequency", Stopwatch.Frequency.ToString() },
                     { "ThreadPool.MinWorkerThreads", minThreads.ToString() },
                     { "ThreadPool.MinIOThreads", minIoThreads.ToString() },
                     { "ThreadPool.MaxWorkerThreads", maxThreads.ToString() },
                     { "ThreadPool.MaxIOThreads", maxIoThreads.ToString() }
-                };
+        };
 
         _lastTicks = Stopwatch.GetTimestamp();
     }

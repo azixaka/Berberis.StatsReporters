@@ -84,18 +84,27 @@ public sealed class StatsRequestHandler
 
     public async Task GetNetworkStats(HttpContext context)
     {
-        var stats = _statsReporterFactory.GetNetworkStats();
+        var networkStats = _statsReporterFactory.GetNetworkStats();
 
         await using var writer = new Utf8JsonWriter(context.Response.Body);
 
         writer.WriteStartObject();
 
-        WriteNumber(writer, "IMs", stats.IntervalMs);
-        WriteNumber(writer, "RcvB", stats.BytesReceived);
-        WriteNumber(writer, "SntB", stats.BytesSent);
-        WriteNumber(writer, "RcvS", stats.ReceivedBytesPerSecond);
-        WriteNumber(writer, "SndS", stats.SentBytesPerSecond);
+        WriteNumber(writer, "IMs", networkStats.IntervalMs);
 
+        writer.WritePropertyName("Interfaces");
+        writer.WriteStartArray();
+
+        foreach (var (name, stats) in networkStats.InterfaceStats)
+        {
+            writer.WriteString("Name", name);
+            WriteNumber(writer, "RcvB", stats.BytesReceived);
+            WriteNumber(writer, "SntB", stats.BytesSent);
+            WriteNumber(writer, "RcvS", stats.ReceivedBytesPerSecond);
+            WriteNumber(writer, "SndS", stats.SentBytesPerSecond);
+        }
+
+        writer.WriteEndArray();
         writer.WriteEndObject();
     }
 

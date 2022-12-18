@@ -15,6 +15,11 @@ public readonly struct ServiceTimeStats
     /// <summary>
     /// Total number of processed messages
     /// </summary>
+    public readonly long IntervalMessages;
+
+    /// <summary>
+    /// Total number of processed messages
+    /// </summary>
     public readonly long TotalProcessedMessages;
 
     /// <summary>
@@ -38,7 +43,7 @@ public readonly struct ServiceTimeStats
     public readonly (float percentile, float value)[] PercentileValues;
 
     public ServiceTimeStats(float intervalMs,
-                    float processRate,
+                    long intervalMessages,
                     long totalProcessedMessages,
                     float avgServiceTimeMs,
                     float minServiceTimeMs,
@@ -46,7 +51,8 @@ public readonly struct ServiceTimeStats
                     (float percentile, float value)[] percentiles)
     {
         IntervalMs = intervalMs;
-        ProcessRate = processRate;
+        IntervalMessages = intervalMessages;
+        ProcessRate = intervalMessages * 1000.0f / intervalMs;
         TotalProcessedMessages = totalProcessedMessages;
         AvgServiceTimeMs = avgServiceTimeMs;
         MinServiceTimeMs = minServiceTimeMs;

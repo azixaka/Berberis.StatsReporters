@@ -11,7 +11,7 @@ public sealed class StatsReporterFactory : IStatsReporterFactory
     private readonly ILogger<StatsReporterFactory> _logger;
 
     private readonly SystemStatsReporter _systemStatsReporter = new();
-    private readonly NetworkStatsReporter _networkStatsReporter = new("eth0");
+    private readonly NetworkStatsReporter _networkStatsReporter = new();
 
     private readonly ConcurrentDictionary<string, Lazy<StatsReporter>> _reporters =
         new();

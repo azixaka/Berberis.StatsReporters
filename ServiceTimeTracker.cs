@@ -6,8 +6,8 @@ namespace Berberis.StatsReporters;
 public sealed class ServiceTimeTracker
 {
     public static long GetTicks() => Stopwatch.GetTimestamp();
-    internal static float MsRatio => 1000f / Stopwatch.Frequency;
 
+    private readonly float MsRatio = 1000f / Stopwatch.Frequency;
     private long _totalMessages;
     private long _lastMessages;
 
@@ -79,7 +79,7 @@ public sealed class ServiceTimeTracker
         {
             intervalMessages = totalMesssages - _lastMessages;
 
-            timePassed = (float)(ticks - _lastTicks) / Stopwatch.Frequency;
+            timePassed = ticks - _lastTicks;
 
             svcAvg = _svcTimeEwma.AverageValue;
             svcMin = _svcTimeEwma.MinValue;
@@ -111,12 +111,12 @@ public sealed class ServiceTimeTracker
             }
         }
 
-        return new ServiceTimeStats(timePassed * 1000,
-            intervalMessages / timePassed,
-            totalMesssages,
-            svcAvg * MsRatio,
-            svcMin * MsRatio,
-            svcMax * MsRatio,
-            percentileValues);
+        return new ServiceTimeStats(timePassed * MsRatio,
+                                    intervalMessages,
+                                    totalMesssages,
+                                    svcAvg * MsRatio,
+                                    svcMin * MsRatio,
+                                    svcMax * MsRatio,
+                                    percentileValues);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace Berberis.StatsReporters;
 
@@ -21,6 +22,7 @@ public sealed class MovingPercentile
         _delta = _deltaInit = percentileOptions.Delta;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void NewSample(float value)
     {
         if (_initialised)
@@ -41,6 +43,7 @@ public sealed class MovingPercentile
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void NewSample(float value, float ewma)
     {
         var sigma = (float)Math.Sqrt(Math.Abs(ewma - value));
