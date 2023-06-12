@@ -21,7 +21,7 @@ public sealed class NetworkStatsReporter
     {
         _networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
 
-        if (_networkInterfaces == null)
+        if (_networkInterfaces != null)
         {
             _networkInfo = new List<Dictionary<string, string>>(
                                             _networkInterfaces.Select(ni =>
