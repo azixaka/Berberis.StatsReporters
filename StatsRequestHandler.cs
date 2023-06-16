@@ -97,11 +97,13 @@ public sealed class StatsRequestHandler
 
         foreach (var (name, stats) in networkStats.InterfaceStats)
         {
+            writer.WriteStartObject();
             writer.WriteString("Name", name);
             WriteNumber(writer, "RcvB", stats.BytesReceived);
             WriteNumber(writer, "SntB", stats.BytesSent);
             WriteNumber(writer, "RcvS", stats.ReceivedBytesPerSecond);
             WriteNumber(writer, "SndS", stats.SentBytesPerSecond);
+            writer.WriteEndObject();
         }
 
         writer.WriteEndArray();
