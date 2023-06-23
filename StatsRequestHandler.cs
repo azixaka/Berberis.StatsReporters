@@ -79,6 +79,13 @@ public sealed class StatsRequestHandler
         WriteNumber(writer, "TPThreads", systemStats.ThreadPoolThreads);
         WriteNumber(writer, "WorkItems", systemStats.PendingThreadPoolWorkItems);
 
+        WriteNumber(writer, "CompletedWorkItems", systemStats.CompletedThreadPoolWorkItems);
+        WriteNumber(writer, "CompletedWorkItemsPerSecond", systemStats.CompletedThreadPoolWorkItemsPerSecond);
+        writer.WriteBoolean("GcCompacted", systemStats.GcCompacted);
+        writer.WriteBoolean("GcBackground", systemStats.GcBackground);
+        WriteNumber(writer, "PromotedBytesInterval", systemStats.PromotedBytesInterval);
+        WriteNumber(writer, "LockContentions", systemStats.LockContentions);
+
         writer.WriteEndObject();
     }
 
