@@ -21,6 +21,12 @@ public readonly struct SystemStats
     public readonly int NumberOfThreads;
     public readonly int ThreadPoolThreads;
     public readonly long PendingThreadPoolWorkItems;
+    public readonly long CompletedThreadPoolWorkItems;
+    public readonly float CompletedThreadPoolWorkItemsPerSecond;
+    public readonly bool GcCompacted;
+    public readonly bool GcBackground;
+    public readonly long PromotedBytesInterval;
+    public readonly long LockContentions;
 
     public SystemStats(float intervalMs,
         float cpuTimeTotalMs,
@@ -40,7 +46,13 @@ public readonly struct SystemStats
         float gcMemory,
         int numberOfThreads,
         int threadPoolThreads,
-        long pendingThreadPoolWorkItems)
+        long pendingThreadPoolWorkItems,
+        long completedThreadPoolWorkItems,
+        float completedThreadPoolWorkItemsPerSecond,
+        bool gcCompacted,
+        bool gcBackground,
+        long promotedBytesInterval,
+        long lockContentions)
     {
         IntervalMs = intervalMs;
         CpuTimeTotalMs = cpuTimeTotalMs;
@@ -61,5 +73,11 @@ public readonly struct SystemStats
         NumberOfThreads = numberOfThreads;
         ThreadPoolThreads = threadPoolThreads;
         PendingThreadPoolWorkItems = pendingThreadPoolWorkItems;
+        CompletedThreadPoolWorkItems = completedThreadPoolWorkItems;
+        CompletedThreadPoolWorkItemsPerSecond = completedThreadPoolWorkItemsPerSecond;
+        GcCompacted = gcCompacted;
+        GcBackground = gcBackground;
+        PromotedBytesInterval = promotedBytesInterval;
+        LockContentions = lockContentions;
     }
 }

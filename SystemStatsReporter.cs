@@ -17,6 +17,10 @@ public sealed class SystemStatsReporter
     private long _lastGc1;
     private long _lastGc2;
 
+    private long _lastPromotedBytes;
+
+    private long _lastCompletedWorkItems;
+
     private readonly object _syncObj = new();
     private readonly Process _process;
     private readonly int _cpus;
@@ -30,6 +34,8 @@ public sealed class SystemStatsReporter
 
         ThreadPool.GetMinThreads(out var minThreads, out var minIoThreads);
         ThreadPool.GetMaxThreads(out var maxThreads, out var maxIoThreads);
+
+        var gcInfo = GC.GetGCMemoryInfo(GCKind.Any);
 
         _systemInfo = new Dictionary<string, string>
         {
@@ -57,7 +63,8 @@ public sealed class SystemStatsReporter
                     { "ThreadPool.MinWorkerThreads", minThreads.ToString() },
                     { "ThreadPool.MinIOThreads", minIoThreads.ToString() },
                     { "ThreadPool.MaxWorkerThreads", maxThreads.ToString() },
-                    { "ThreadPool.MaxIOThreads", maxIoThreads.ToString() }
+                    { "ThreadPool.MaxIOThreads", maxIoThreads.ToString() },
+                    { "TotalAvailableMemoryBytes", gcInfo.TotalAvailableMemoryBytes.ToString() }
         };
 
         _lastTicks = Stopwatch.GetTimestamp();
@@ -74,8 +81,10 @@ public sealed class SystemStatsReporter
 
         float timePassed;
         float intervalSpent;
-        float rateGc0, rateGc1, rateGc2;
-        long gc0, gc1, gc2;
+        float rateCompletedWorkItems, rateGc0, rateGc1, rateGc2;
+        long promotedBytesInterval, gc0, gc1, gc2;
+        var completedWorkItems = ThreadPool.CompletedWorkItemCount;
+        var gcInfo = GC.GetGCMemoryInfo(GCKind.Any);
 
         lock (_syncObj)
         {
@@ -86,23 +95,31 @@ public sealed class SystemStatsReporter
             intervalSpent = totalSpent - _lastSpentMs;
             _lastSpentMs = totalSpent;
 
+            var ratio = 1000 / timePassed;
+
+            rateCompletedWorkItems = (completedWorkItems - _lastCompletedWorkItems) * ratio;
+            _lastCompletedWorkItems = completedWorkItems;
+
+            
+
             gc0 = GC.CollectionCount(0);
-            rateGc0 = (gc0 - _lastGc0) * 1000 / timePassed;
+            rateGc0 = (gc0 - _lastGc0) * ratio;
             _lastGc0 = gc0;
 
             gc1 = GC.CollectionCount(1);
-            rateGc1 = (gc1 - _lastGc1) * 1000 / timePassed;
+            rateGc1 = (gc1 - _lastGc1) * ratio;
             _lastGc1 = gc1;
 
             gc2 = GC.CollectionCount(2);
-            rateGc2 = (gc2 - _lastGc2) * 1000 / timePassed;
+            rateGc2 = (gc2 - _lastGc2) * ratio;
             _lastGc2 = gc2;
+
+            promotedBytesInterval = gcInfo.PromotedBytes - _lastPromotedBytes;
+            _lastPromotedBytes = gcInfo.PromotedBytes;
         }
 
-        var gcInfo = GC.GetGCMemoryInfo(GCKind.Any);
         var gcIteration = gcInfo.Index;
         var pauseTimePercentage = (float)gcInfo.PauseTimePercentage;
-
         var percentUsed = intervalSpent / timePassed;
 
         return new SystemStats(timePassed, totalSpent, intervalSpent, percentUsed,
@@ -116,6 +133,12 @@ public sealed class SystemStatsReporter
             GC.GetTotalMemory(false),
             _process.Threads.Count,
             ThreadPool.ThreadCount,
-            ThreadPool.PendingWorkItemCount);
+            ThreadPool.PendingWorkItemCount,
+            completedWorkItems,
+            rateCompletedWorkItems,
+            gcInfo.Compacted,
+            gcInfo.Concurrent,
+            promotedBytesInterval,
+            Monitor.LockContentionCount);
     }
 }
