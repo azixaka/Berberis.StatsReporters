@@ -100,8 +100,6 @@ public sealed class SystemStatsReporter
             rateCompletedWorkItems = (completedWorkItems - _lastCompletedWorkItems) * ratio;
             _lastCompletedWorkItems = completedWorkItems;
 
-            
-
             gc0 = GC.CollectionCount(0);
             rateGc0 = (gc0 - _lastGc0) * ratio;
             _lastGc0 = gc0;

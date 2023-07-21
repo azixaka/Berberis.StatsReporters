@@ -1,15 +1,26 @@
-﻿namespace Berberis.StatsReporters;
+﻿using System.Collections.Generic;
+
+namespace Berberis.StatsReporters;
 
 public readonly struct NetworkStats
 {
     public readonly float IntervalMs;
+    public readonly long BytesReceived;
+    public readonly long BytesSent;
+    public readonly float ReceivedBytesPerSecond;
+    public readonly float SentBytesPerSecond;
 
-    public readonly (string Name, InterfaceStats Stats)[] InterfaceStats;
+    public readonly KeyValuePair<string, InterfaceStats>[] InterfaceStats;
 
-    public NetworkStats(float intervalMs, (string Name, InterfaceStats Stats)[] interfaceStats)
+    public NetworkStats(float intervalMs, KeyValuePair<string, InterfaceStats>[] interfaceStats,
+        InterfaceStats primaryInterface)
     {
         IntervalMs = intervalMs;
         InterfaceStats = interfaceStats;
+        BytesReceived = primaryInterface.BytesReceived;
+        BytesSent = primaryInterface.BytesSent;
+        ReceivedBytesPerSecond = primaryInterface.ReceivedBytesPerSecond;
+        SentBytesPerSecond = primaryInterface.SentBytesPerSecond;
     }
 }
 

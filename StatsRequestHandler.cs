@@ -78,7 +78,6 @@ public sealed class StatsRequestHandler
         WriteNumber(writer, "Threads", systemStats.NumberOfThreads);
         WriteNumber(writer, "TPThreads", systemStats.ThreadPoolThreads);
         WriteNumber(writer, "WorkItems", systemStats.PendingThreadPoolWorkItems);
-
         WriteNumber(writer, "CompletedWorkItems", systemStats.CompletedThreadPoolWorkItems);
         WriteNumber(writer, "CompletedWorkItemsPerSecond", systemStats.CompletedThreadPoolWorkItemsPerSecond);
         writer.WriteBoolean("GcCompacted", systemStats.GcCompacted);
@@ -89,15 +88,19 @@ public sealed class StatsRequestHandler
         writer.WriteEndObject();
     }
 
-    public async Task GetNetworkStats(HttpContext context)
+    public Task GetNetworkStats(HttpContext context)
     {
         var networkStats = _statsReporterFactory.GetNetworkStats();
 
-        await using var writer = new Utf8JsonWriter(context.Response.Body);
+        using var writer = new Utf8JsonWriter(context.Response.Body);
 
         writer.WriteStartObject();
 
         WriteNumber(writer, "IMs", networkStats.IntervalMs);
+        writer.WriteNumber("RcvB", networkStats.BytesReceived);
+        writer.WriteNumber("SntB", networkStats.BytesSent);
+        WriteNumber(writer, "RcvS", networkStats.ReceivedBytesPerSecond);
+        WriteNumber(writer, "SndS", networkStats.SentBytesPerSecond);
 
         writer.WritePropertyName("Interfaces");
         writer.WriteStartArray();
@@ -106,8 +109,8 @@ public sealed class StatsRequestHandler
         {
             writer.WriteStartObject();
             writer.WriteString("Name", name);
-            WriteNumber(writer, "RcvB", stats.BytesReceived);
-            WriteNumber(writer, "SntB", stats.BytesSent);
+            writer.WriteNumber("RcvB", stats.BytesReceived);
+            writer.WriteNumber("SntB", stats.BytesSent);
             WriteNumber(writer, "RcvS", stats.ReceivedBytesPerSecond);
             WriteNumber(writer, "SndS", stats.SentBytesPerSecond);
             writer.WriteEndObject();
@@ -115,6 +118,8 @@ public sealed class StatsRequestHandler
 
         writer.WriteEndArray();
         writer.WriteEndObject();
+
+        return Task.CompletedTask;
     }
 
     public async Task ListReporters(HttpContext context)

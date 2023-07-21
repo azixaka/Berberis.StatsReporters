@@ -38,9 +38,11 @@ public sealed class ServiceTimeTracker
 
     public PercentileOptions[] PercentileOptions { get; }
 
-    public long RecordServiceTime(long startTicks)
+    public long RecordServiceTime(long startTicks) => RecordServiceTime(startTicks, GetTicks());
+
+    public long RecordServiceTime(long startTicks, long endTicks)
     {
-        var svcTime = GetTicks() - startTicks;
+        var svcTime = endTicks - startTicks;
 
         Interlocked.Increment(ref _totalMessages);
 
