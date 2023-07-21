@@ -27,6 +27,7 @@ public readonly struct SystemStats
     public readonly bool GcBackground;
     public readonly long PromotedBytesInterval;
     public readonly long LockContentions;
+    public readonly LatencyStats? ThreadPoolLatency;
 
     public SystemStats(float intervalMs,
         float cpuTimeTotalMs,
@@ -52,7 +53,8 @@ public readonly struct SystemStats
         bool gcCompacted,
         bool gcBackground,
         long promotedBytesInterval,
-        long lockContentions)
+        long lockContentions,
+        LatencyStats? threadPoolLatency)
     {
         IntervalMs = intervalMs;
         CpuTimeTotalMs = cpuTimeTotalMs;
@@ -79,5 +81,6 @@ public readonly struct SystemStats
         GcBackground = gcBackground;
         PromotedBytesInterval = promotedBytesInterval;
         LockContentions = lockContentions;
+        ThreadPoolLatency = threadPoolLatency;
     }
 }

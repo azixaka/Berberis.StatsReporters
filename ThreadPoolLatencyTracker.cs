@@ -15,12 +15,12 @@ public sealed class ThreadPoolLatencyTracker
 
     private int completedOps;
 
-    public ThreadPoolLatencyTracker(int numberOfMeasurements = 100_000)
+    public ThreadPoolLatencyTracker(int numberOfMeasurements = 10_000)
     {
         values = new long[numberOfMeasurements];
     }
 
-    public ValueTask<LatencyStats> Measure()
+    public LatencyStats Measure()
     {
         //SetUp
         epoch = Stopwatch.GetTimestamp();
@@ -48,11 +48,11 @@ public sealed class ThreadPoolLatencyTracker
         Array.Sort(values);
 
         decimal median = (CalculatePercentile(values, 50) * 1E3m) / Stopwatch.Frequency;
-        decimal percentile90 = (CalculatePercentile(values, 90) * 1E3m) / Stopwatch.Frequency;
-        decimal percentile99 = (CalculatePercentile(values, 99) * 1E3m) / Stopwatch.Frequency;
-        decimal percentile9999 = (CalculatePercentile(values, 99.99f) * 1E3m) / Stopwatch.Frequency;
+        decimal p90 = (CalculatePercentile(values, 90) * 1E3m) / Stopwatch.Frequency;
+        decimal p99 = (CalculatePercentile(values, 99) * 1E3m) / Stopwatch.Frequency;
+        decimal p99_99 = (CalculatePercentile(values, 99.99f) * 1E3m) / Stopwatch.Frequency;
 
-        return ValueTask.FromResult(new LatencyStats((double)median, (double)percentile90, (double)percentile99, (double)percentile9999));
+        return new LatencyStats((double)median, (double)p90, (double)p99, (double)p99_99);
     }
 
     private void WorkItem(object _)
@@ -76,4 +76,4 @@ public sealed class ThreadPoolLatencyTracker
     }
 }
 
-public readonly record struct LatencyStats(double MedianMs, double Percentile90Ms, double Percentile99Ms, double Percentile9999Ms);
+public readonly record struct LatencyStats(double MedianMs, double P90Ms, double P99Ms, double P99_99Ms);

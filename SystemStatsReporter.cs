@@ -27,7 +27,9 @@ public sealed class SystemStatsReporter
 
     private readonly Dictionary<string, string> _systemInfo;
 
-    public SystemStatsReporter()
+    private readonly ThreadPoolLatencyTracker _latencyTracker;
+
+    public SystemStatsReporter(bool measureThreadPoolLatency = true)
     {
         _process = Process.GetCurrentProcess();
         _cpus = Environment.ProcessorCount;
@@ -66,6 +68,9 @@ public sealed class SystemStatsReporter
                     { "ThreadPool.MaxIOThreads", maxIoThreads.ToString() },
                     { "TotalAvailableMemoryBytes", gcInfo.TotalAvailableMemoryBytes.ToString() }
         };
+
+        if (measureThreadPoolLatency)
+            _latencyTracker = new ThreadPoolLatencyTracker();
 
         _lastTicks = Stopwatch.GetTimestamp();
     }
@@ -120,6 +125,8 @@ public sealed class SystemStatsReporter
         var pauseTimePercentage = (float)gcInfo.PauseTimePercentage;
         var percentUsed = intervalSpent / timePassed;
 
+        var tpLatency = _latencyTracker?.Measure();
+
         return new SystemStats(timePassed, totalSpent, intervalSpent, percentUsed,
             rateGc0, rateGc1, rateGc2,
             gcIteration,
@@ -137,6 +144,7 @@ public sealed class SystemStatsReporter
             gcInfo.Compacted,
             gcInfo.Concurrent,
             promotedBytesInterval,
-            Monitor.LockContentionCount);
+            Monitor.LockContentionCount,
+            tpLatency);
     }
 }

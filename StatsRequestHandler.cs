@@ -85,6 +85,14 @@ public sealed class StatsRequestHandler
         WriteNumber(writer, "PromotedBytesInterval", systemStats.PromotedBytesInterval);
         WriteNumber(writer, "LockContentions", systemStats.LockContentions);
 
+        if (systemStats.ThreadPoolLatency.HasValue)
+        {
+            WriteNumber(writer, "TPMedianMs", systemStats.ThreadPoolLatency.Value.MedianMs);
+            WriteNumber(writer, "TPP90Ms", systemStats.ThreadPoolLatency.Value.P90Ms);
+            WriteNumber(writer, "TPP99Ms", systemStats.ThreadPoolLatency.Value.P99Ms);
+            WriteNumber(writer, "TPP99_99Ms", systemStats.ThreadPoolLatency.Value.P99_99Ms);
+        }
+
         writer.WriteEndObject();
     }
 
@@ -161,9 +169,17 @@ public sealed class StatsRequestHandler
 
     private static void WriteNumber(Utf8JsonWriter writer, string name, float value)
     {
+        if (float.IsNaN(value) || float.IsInfinity(value))
+            writer.WriteNull(name);
+        else
+            writer.WriteNumber(name, value);
+    }
+    private static void WriteNumber(Utf8JsonWriter writer, string name, double value)
+    {
         if (double.IsNaN(value) || double.IsInfinity(value))
             writer.WriteNull(name);
         else
             writer.WriteNumber(name, value);
     }
+
 }
