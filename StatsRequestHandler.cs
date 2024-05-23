@@ -96,11 +96,11 @@ public sealed class StatsRequestHandler
         writer.WriteEndObject();
     }
 
-    public Task GetNetworkStats(HttpContext context)
+    public async Task GetNetworkStats(HttpContext context)
     {
         var networkStats = _statsReporterFactory.GetNetworkStats();
 
-        using var writer = new Utf8JsonWriter(context.Response.Body);
+        await using var writer = new Utf8JsonWriter(context.Response.Body);
 
         writer.WriteStartObject();
 
@@ -125,9 +125,7 @@ public sealed class StatsRequestHandler
         }
 
         writer.WriteEndArray();
-        writer.WriteEndObject();
-
-        return Task.CompletedTask;
+        writer.WriteEndObject();        
     }
 
     public async Task ListReporters(HttpContext context)
