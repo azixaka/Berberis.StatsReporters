@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Threading;
 using System;
-using System.Threading.Tasks;
 
 namespace Berberis.StatsReporters;
 
@@ -38,7 +37,7 @@ public sealed class ThreadPoolLatencyTracker
         {
             var spinWait = new SpinWait();
 
-            while (completedOps < values.Length)
+            while (completedOps < values.Length && spinWait.Count < 1000)
             {
                 spinWait.SpinOnce();
             }
