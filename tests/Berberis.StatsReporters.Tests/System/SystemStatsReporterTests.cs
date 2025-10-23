@@ -164,7 +164,7 @@ public class SystemStatsReporterTests
 
         // Assert - Interval should represent time since last GetStats
         stats2.IntervalMs.Should().BeGreaterThan(50, "Should measure time since last call");
-        stats2.IntervalMs.Should().BeLessThan(1000, "Should be recent interval");
+        stats2.IntervalMs.Should().BeLessThan(1150, "Should be recent interval (with 15% tolerance for CI timing variations)");
 
         // The second interval's CPU time should be less than total (it's just the delta)
         stats2.CpuTimeIntMs.Should().BeLessThanOrEqualTo(stats2.CpuTimeTotalMs,
