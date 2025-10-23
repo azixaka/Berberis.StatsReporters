@@ -88,22 +88,24 @@ public sealed class NetworkStatsReporter
             // which artificially limits all values read from Linux network stats table file to UInt64. Couldn't figure out why but it means stats stop after 4bln bytes sent/received.
 
             var stats = _adapter.GetIPStatistics();
-
             var rcvd = stats.BytesReceived;
-            var intervalRcvBytes = (rcvd - _lastRcvBytes) * 1000 / timePassed;
-            _lastRcvBytes = rcvd;
-
             var sent = stats.BytesSent;
-            var intervalSndBytes = (sent - _lastSndBytes) * 1000 / timePassed;
-            _lastSndBytes = sent;
 
-            if (_initialized)
+            if (!_initialized)
             {
-                return new InterfaceStats(_lastRcvBytes, _lastSndBytes, intervalRcvBytes, intervalSndBytes);
+                _lastRcvBytes = rcvd;
+                _lastSndBytes = sent;
+                _initialized = true;
+                return default;
             }
 
-            _initialized = true;
-            return default;
+            var intervalRcvBytes = (rcvd - _lastRcvBytes) * 1000 / timePassed;
+            var intervalSndBytes = (sent - _lastSndBytes) * 1000 / timePassed;
+
+            _lastRcvBytes = rcvd;
+            _lastSndBytes = sent;
+
+            return new InterfaceStats(_lastRcvBytes, _lastSndBytes, intervalRcvBytes, intervalSndBytes);
         }
     }
 

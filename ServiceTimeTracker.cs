@@ -12,7 +12,7 @@ public sealed class ServiceTimeTracker
     private long _lastMessages;
 
     private long _lastTicks;
-    private object _syncObj = new();
+    private readonly object _syncObj = new();
 
     private readonly ExponentialWeightedMovingAverage _svcTimeEwma;
     private readonly MovingPercentile[] _svcTimePercentiles;
