@@ -62,6 +62,8 @@ public sealed class StatsReporter
     {
         Interlocked.Add(ref _totalMessages, units);
 
+        // WARNING: Floating-point equality in CompareExchange loop is unreliable and may cause
+        // infinite loops or incorrect totals. Consider replacing with lock-based approach.
         double currTotal, newTotal;
         do
         {
