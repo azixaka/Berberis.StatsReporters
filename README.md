@@ -1,5 +1,11 @@
 # Berberis.StatsReporters
 
+[![NuGet Version](https://img.shields.io/nuget/v/Berberis.StatsReporters?style=flat-square&logo=nuget&label=NuGet)](https://www.nuget.org/packages/Berberis.StatsReporters)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Berberis.StatsReporters?style=flat-square&logo=nuget&label=Downloads)](https://www.nuget.org/packages/Berberis.StatsReporters)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/azixaka/Berberis/build-and-publish.yml?branch=master&style=flat-square&logo=github&label=Build)](https://github.com/azixaka/Berberis/actions)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square&logo=opensourceinitiative&logoColor=white)](https://github.com/azixaka/Berberis/blob/master/LICENSE)
+[![.NET Version](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/8.0)
+
 A high-performance .NET library for real-time monitoring and metrics collection in ASP.NET Core applications. Track system resources, network activity, and custom operation metrics with minimal overhead.
 
 ## Installation
@@ -54,6 +60,8 @@ This exposes the following endpoints:
 - `GET /api/stats/reporters` - List all custom reporters
 - `GET /api/stats/reporters/{source}` - Get stats for a specific reporter
 
+**Alternative:** You can also use `app.UseStats(statsFactory, prefix: "/api/")` if you prefer the UseEndpoints pattern.
+
 ## Tracking Custom Operations
 
 ### Simple Operation Tracking
@@ -65,7 +73,7 @@ public class MyService
 
     public MyService(IStatsReporterFactory factory)
     {
-        _stats = factory.GetOrCreate("MyService.ProcessData");
+        _stats = factory.GetOrCreateReporter("MyService.ProcessData");
     }
 
     public async Task ProcessDataAsync(byte[] data)
@@ -77,6 +85,32 @@ public class MyService
 
         // Track the operation with byte count
         _stats.Stop(start, data.Length);
+    }
+}
+```
+
+### Recording Pre-Calculated Metrics
+
+If you have pre-calculated metrics, you can record them directly:
+
+```csharp
+public class BatchProcessor
+{
+    private readonly StatsReporter _stats;
+
+    public BatchProcessor(IStatsReporterFactory factory)
+    {
+        _stats = factory.GetOrCreateReporter("BatchProcessor");
+    }
+
+    public void RecordBatchMetrics(long itemsProcessed, float totalServiceTimeMs, long totalBytes)
+    {
+        // Record pre-calculated metrics
+        _stats.Record(
+            units: itemsProcessed,
+            serviceTimeMs: totalServiceTimeMs,
+            bytes: totalBytes
+        );
     }
 }
 ```
@@ -93,29 +127,33 @@ public class ApiHandler
     public ApiHandler()
     {
         _tracker = new ServiceTimeTracker(
-            new PercentileOptions(
-                percentiles: new[] { 50, 95, 99, 99.9 },
-                windowSize: 1000
-            )
+            ewmaWindowSize: 100,
+            percentileOptions: new[]
+            {
+                new PercentileOptions(50),    // p50 (median)
+                new PercentileOptions(95),    // p95
+                new PercentileOptions(99),    // p99
+                new PercentileOptions(99.9f)  // p99.9
+            }
         );
     }
 
     public async Task<Response> HandleRequestAsync()
     {
-        var start = Stopwatch.GetTimestamp();
+        var start = ServiceTimeTracker.GetTicks();
 
         var response = await ProcessRequestAsync();
 
-        var elapsed = StatsReporter.ElapsedSince(start);
-        _tracker.Record(elapsed);
+        _tracker.RecordServiceTime(start);
 
         return response;
     }
 
     public ServiceTimeStats GetStats()
     {
-        return _tracker.GetStats();
-        // Returns: p50, p95, p99, p99.9, average, count
+        return _tracker.GetStats(reset: false);
+        // Returns: IntervalMs, ProcessRate, IntervalMessages, TotalProcessedMessages,
+        // AvgServiceTimeMs, MinServiceTimeMs, MaxServiceTimeMs, PercentileValues[]
     }
 }
 ```
@@ -131,13 +169,17 @@ public class ThreadPoolMonitor
 
     public ThreadPoolMonitor()
     {
-        _latencyTracker = new ThreadPoolLatencyTracker();
+        _latencyTracker = new ThreadPoolLatencyTracker(numberOfMeasurements: 10_000);
     }
 
     public void CheckLatency()
     {
-        var latencyMs = _latencyTracker.Measure();
-        Console.WriteLine($"Thread pool latency: {latencyMs:F2}ms");
+        var latencyStats = _latencyTracker.Measure();
+        Console.WriteLine($"Thread pool latency:");
+        Console.WriteLine($"  Median: {latencyStats.MedianMs:F2}ms");
+        Console.WriteLine($"  P90: {latencyStats.P90Ms:F2}ms");
+        Console.WriteLine($"  P99: {latencyStats.P99Ms:F2}ms");
+        Console.WriteLine($"  P99.99: {latencyStats.P99_99Ms:F2}ms");
     }
 }
 ```
@@ -238,7 +280,7 @@ public class ApplicationMetrics
 
     public void TrackOperation(string operationName, Action operation)
     {
-        var reporter = _factory.GetOrCreate(operationName);
+        var reporter = _factory.GetOrCreateReporter(operationName);
         var start = reporter.Start();
 
         operation();
@@ -248,12 +290,10 @@ public class ApplicationMetrics
 
     public void PrintAllStats()
     {
-        foreach (var reporter in _factory.GetReporters())
+        foreach (var reporterName in _factory.ListReporters())
         {
-            if (!reporter.IsChanged) continue;
-
-            var stats = reporter.GetStats();
-            Console.WriteLine($"{reporter.Source}:");
+            var stats = _factory.GetReporterStats(reporterName);
+            Console.WriteLine($"{reporterName}:");
             Console.WriteLine($"  Rate: {stats.MessagesPerSecond:F1} ops/s");
             Console.WriteLine($"  Avg Time: {stats.AvgServiceTime:F2} ms");
             Console.WriteLine($"  Total: {stats.TotalMessages}");
@@ -269,6 +309,9 @@ Enable manual GC collection for debugging (use with caution in production):
 ```csharp
 app.MapGCOperations(prefix: "/api/");
 // Exposes: GET /api/dbg/gccollect
+
+// Alternative using UseEndpoints pattern:
+app.UseGCOperations(prefix: "/api/");
 ```
 
 ## Stats Output
@@ -294,14 +337,16 @@ Includes CPU usage, memory, GC stats, thread pool metrics, lock contention, and 
 ### Service Time Stats
 
 ```csharp
-public class ServiceTimeStats
+public readonly struct ServiceTimeStats
 {
-    public double P50 { get; }      // Median latency
-    public double P95 { get; }      // 95th percentile
-    public double P99 { get; }      // 99th percentile
-    public double P999 { get; }     // 99.9th percentile
-    public double Average { get; }  // Mean latency
-    public long Count { get; }      // Sample count
+    public readonly float IntervalMs;                  // Measurement window in ms
+    public readonly float ProcessRate;                 // Operations per second
+    public readonly long IntervalMessages;             // Messages in this interval
+    public readonly long TotalProcessedMessages;       // Total messages processed
+    public readonly float AvgServiceTimeMs;            // Average latency
+    public readonly float MinServiceTimeMs;            // Minimum latency
+    public readonly float MaxServiceTimeMs;            // Maximum latency
+    public readonly (float percentile, float value)[] PercentileValues; // Configured percentiles
 }
 ```
 
@@ -323,7 +368,7 @@ public class ServiceTimeStats
 
 ## Requirements
 
-- .NET 7.0 or higher
+- .NET 8.0 or higher
 - ASP.NET Core (for endpoint integration)
 
 ## License
