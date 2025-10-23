@@ -46,13 +46,16 @@ public sealed class ServiceTimeTracker
 
         Interlocked.Increment(ref _totalMessages);
 
-        _svcTimeEwma.NewSample(svcTime);
-
-        if (_svcTimePercentiles != null)
+        lock (_syncObj)
         {
-            for (int i = 0; i < _svcTimePercentiles.Length; i++)
+            _svcTimeEwma.NewSample(svcTime);
+
+            if (_svcTimePercentiles != null)
             {
-                _svcTimePercentiles[i].NewSample(svcTime, _svcTimeEwma.AverageValue);
+                for (int i = 0; i < _svcTimePercentiles.Length; i++)
+                {
+                    _svcTimePercentiles[i].NewSample(svcTime, _svcTimeEwma.AverageValue);
+                }
             }
         }
 
