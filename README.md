@@ -169,11 +169,19 @@ public class ThreadPoolMonitor
 
     public ThreadPoolMonitor()
     {
+        // Results are cached for 5 seconds by default
         _latencyTracker = new ThreadPoolLatencyTracker(numberOfMeasurements: 10_000);
+
+        // Or customize cache duration
+        // _latencyTracker = new ThreadPoolLatencyTracker(10_000, cacheDuration: TimeSpan.FromSeconds(10));
+
+        // Or disable caching entirely
+        // _latencyTracker = new ThreadPoolLatencyTracker(10_000, cacheDuration: TimeSpan.Zero);
     }
 
     public void CheckLatency()
     {
+        // Concurrent calls within cache window return the same cached result
         var latencyStats = _latencyTracker.Measure();
         Console.WriteLine($"Thread pool latency:");
         Console.WriteLine($"  Median: {latencyStats.MedianMs:F2}ms");
@@ -183,6 +191,12 @@ public class ThreadPoolMonitor
     }
 }
 ```
+
+**Caching Behavior:**
+- Results are cached for 5 seconds by default to prevent redundant measurements
+- Concurrent `Measure()` calls during an active measurement wait and receive the same result
+- Only one actual measurement occurs at a time (deduplication)
+- Pass `TimeSpan.Zero` to disable caching and measure on every call
 
 ## System Monitoring
 
