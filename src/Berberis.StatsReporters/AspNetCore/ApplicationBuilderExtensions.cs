@@ -7,14 +7,29 @@ using Microsoft.AspNetCore.Routing;
 
 namespace Berberis.StatsReporters;
 
+/// <summary>
+/// ASP.NET Core integration extensions for stats reporting and diagnostics.
+/// </summary>
 public static class ApplicationBuilderExtensions
 {
+    /// <summary>
+    /// Maps stats endpoints to the route builder.
+    /// </summary>
+    /// <param name="endpoints">Route builder.</param>
+    /// <param name="statsReporterFactory">Factory for accessing stats reporters.</param>
+    /// <param name="prefix">Optional URL prefix (e.g., "api/").</param>
     public static void MapStats(this IEndpointRouteBuilder endpoints, IStatsReporterFactory statsReporterFactory, string prefix = "")
     {
         var handler = new StatsRequestHandler(statsReporterFactory);
         MapStats(endpoints, handler, prefix);
     }
 
+    /// <summary>
+    /// Adds stats endpoints to the application pipeline.
+    /// </summary>
+    /// <param name="appBuilder">Application builder.</param>
+    /// <param name="statsReporterFactory">Factory for accessing stats reporters.</param>
+    /// <param name="prefix">Optional URL prefix (e.g., "api/").</param>
     public static IApplicationBuilder UseStats(this IApplicationBuilder appBuilder, IStatsReporterFactory statsReporterFactory, string prefix = "")
     {
         var handler = new StatsRequestHandler(statsReporterFactory);
@@ -37,6 +52,11 @@ public static class ApplicationBuilderExtensions
         endpoints.MapGet($"{prefix}stats/reporters/" + "{source}", handler.GetReporterStats);
     }
 
+    /// <summary>
+    /// Adds GC diagnostic endpoints to the application pipeline.
+    /// </summary>
+    /// <param name="appBuilder">Application builder.</param>
+    /// <param name="prefix">Optional URL prefix (e.g., "api/").</param>
     public static IApplicationBuilder UseGCOperations(this IApplicationBuilder appBuilder, string prefix = "")
     {
         appBuilder.UseEndpoints(endpoints =>
@@ -47,6 +67,11 @@ public static class ApplicationBuilderExtensions
         return appBuilder;
     }
 
+    /// <summary>
+    /// Maps GC diagnostic endpoints (e.g., manual collection trigger).
+    /// </summary>
+    /// <param name="endpoints">Route builder.</param>
+    /// <param name="prefix">Optional URL prefix (e.g., "api/").</param>
     public static void MapGCOperations(this IEndpointRouteBuilder endpoints, string prefix)
     {
         endpoints.MapGet($"{prefix}dbg/gccollect", async context =>

@@ -1,5 +1,8 @@
 ﻿namespace Berberis.StatsReporters;
 
+/// <summary>
+/// System performance metrics including CPU, memory, GC, and thread pool statistics.
+/// </summary>
 public readonly struct SystemStats
 {
     public readonly float IntervalMs;

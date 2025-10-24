@@ -6,6 +6,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Berberis.StatsReporters;
 
+/// <summary>
+/// Default implementation of <see cref="IStatsReporterFactory"/>.
+/// Thread-safe reporter registry with built-in system and network monitoring.
+/// </summary>
 public sealed class StatsReporterFactory : IStatsReporterFactory
 {
     private readonly ILogger<StatsReporterFactory> _logger;
@@ -16,6 +20,9 @@ public sealed class StatsReporterFactory : IStatsReporterFactory
     private readonly ConcurrentDictionary<string, Lazy<StatsReporter>> _reporters =
         new();
 
+    /// <summary>
+    /// Creates a stats reporter factory.
+    /// </summary>
     public StatsReporterFactory(ILogger<StatsReporterFactory> logger)
     {
         _logger = logger;

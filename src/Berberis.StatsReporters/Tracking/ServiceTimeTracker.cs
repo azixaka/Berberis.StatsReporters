@@ -3,8 +3,15 @@ using System.Threading;
 
 namespace Berberis.StatsReporters;
 
+/// <summary>
+/// Tracks service time statistics with EWMA and configurable percentiles.
+/// Thread-safe for concurrent recording.
+/// </summary>
 public sealed class ServiceTimeTracker
 {
+    /// <summary>
+    /// Returns current high-resolution timestamp for timing operations.
+    /// </summary>
     public static long GetTicks() => Stopwatch.GetTimestamp();
 
     private readonly float MsRatio = 1000f / Stopwatch.Frequency;
@@ -17,6 +24,11 @@ public sealed class ServiceTimeTracker
     private readonly ExponentialWeightedMovingAverage _svcTimeEwma;
     private readonly MovingPercentile[] _svcTimePercentiles;
 
+    /// <summary>
+    /// Creates a service time tracker with optional percentile tracking.
+    /// </summary>
+    /// <param name="ewmaWindowSize">Window size for exponential weighted moving average. Default is 50.</param>
+    /// <param name="percentileOptions">Optional percentiles to track (e.g., P95, P99).</param>
     public ServiceTimeTracker(int ewmaWindowSize = 50, PercentileOptions[] percentileOptions = null)
     {
         _svcTimeEwma = new(ewmaWindowSize);
@@ -36,10 +48,22 @@ public sealed class ServiceTimeTracker
         _lastTicks = GetTicks();
     }
 
+    /// <summary>
+    /// Gets the configured percentile options.
+    /// </summary>
     public PercentileOptions[] PercentileOptions { get; }
 
+    /// <summary>
+    /// Records service time for an operation. Returns elapsed ticks.
+    /// </summary>
+    /// <param name="startTicks">Timestamp from <see cref="GetTicks"/>.</param>
     public long RecordServiceTime(long startTicks) => RecordServiceTime(startTicks, GetTicks());
 
+    /// <summary>
+    /// Records service time between two timestamps. Returns elapsed ticks.
+    /// </summary>
+    /// <param name="startTicks">Start timestamp.</param>
+    /// <param name="endTicks">End timestamp.</param>
     public long RecordServiceTime(long startTicks, long endTicks)
     {
         var svcTime = endTicks - startTicks;
@@ -62,6 +86,10 @@ public sealed class ServiceTimeTracker
         return svcTime;
     }
 
+    /// <summary>
+    /// Computes service time statistics.
+    /// </summary>
+    /// <param name="reset">If true, resets interval counters and moving averages.</param>
     public ServiceTimeStats GetStats(bool reset)
     {
         var ticks = GetTicks();

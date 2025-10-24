@@ -2,6 +2,9 @@
 
 namespace Berberis.StatsReporters;
 
+/// <summary>
+/// Computes exponentially weighted moving average with min/max tracking.
+/// </summary>
 public sealed class ExponentialWeightedMovingAverage
 {
     private bool _initialised = false;
@@ -9,10 +12,25 @@ public sealed class ExponentialWeightedMovingAverage
     // Smoothing/damping coefficient
     private readonly float _alpha;
 
+    /// <summary>
+    /// Gets the current EWMA value.
+    /// </summary>
     public float AverageValue { get; private set; }
+
+    /// <summary>
+    /// Gets the minimum value observed since last reset.
+    /// </summary>
     public float MinValue { get; private set; }
+
+    /// <summary>
+    /// Gets the maximum value observed since last reset.
+    /// </summary>
     public float MaxValue { get; private set; }
 
+    /// <summary>
+    /// Creates an EWMA calculator with the specified window size.
+    /// </summary>
+    /// <param name="samplesPerWindow">Number of samples per window. Default is 50 if less than 1.</param>
     public ExponentialWeightedMovingAverage(int samplesPerWindow)
     {
         samplesPerWindow = samplesPerWindow < 1 ? 50 : samplesPerWindow;
@@ -21,6 +39,9 @@ public sealed class ExponentialWeightedMovingAverage
         _alpha = 2f / (samplesPerWindow + 1);
     }
 
+    /// <summary>
+    /// Records a new sample and updates the moving average.
+    /// </summary>
     public void NewSample(float value)
     {
         if (_initialised)
@@ -40,6 +61,9 @@ public sealed class ExponentialWeightedMovingAverage
         }
     }
 
+    /// <summary>
+    /// Resets all values to zero.
+    /// </summary>
     public void Reset()
     {
         AverageValue = 0;

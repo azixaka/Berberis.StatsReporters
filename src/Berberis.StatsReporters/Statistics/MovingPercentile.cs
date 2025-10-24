@@ -3,6 +3,9 @@ using System.Runtime.CompilerServices;
 
 namespace Berberis.StatsReporters;
 
+/// <summary>
+/// Tracks a percentile estimate over a stream of values using adaptive step size.
+/// </summary>
 public sealed class MovingPercentile
 {
     private bool _initialised;
@@ -11,10 +14,19 @@ public sealed class MovingPercentile
     private float _delta;
     private readonly float _deltaInit;
 
+    /// <summary>
+    /// Gets the percentile being tracked (e.g., 0.95 for P95).
+    /// </summary>
     public float Percentile { get; private set; }
 
+    /// <summary>
+    /// Gets the current percentile estimate.
+    /// </summary>
     public float PercentileValue { get; private set; }
 
+    /// <summary>
+    /// Creates a moving percentile tracker.
+    /// </summary>
     public MovingPercentile(PercentileOptions percentileOptions)
     {
         Percentile = percentileOptions.Percentile;
@@ -22,6 +34,9 @@ public sealed class MovingPercentile
         _delta = _deltaInit = percentileOptions.Delta;
     }
 
+    /// <summary>
+    /// Records a new sample with fixed step size.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void NewSample(float value)
     {
@@ -43,6 +58,9 @@ public sealed class MovingPercentile
         }
     }
 
+    /// <summary>
+    /// Records a new sample with adaptive step size based on EWMA.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void NewSample(float value, float ewma)
     {
@@ -51,6 +69,9 @@ public sealed class MovingPercentile
         NewSample(value);
     }
 
+    /// <summary>
+    /// Resets the percentile estimate.
+    /// </summary>
     public void Reset()
     {
         PercentileValue = 0;

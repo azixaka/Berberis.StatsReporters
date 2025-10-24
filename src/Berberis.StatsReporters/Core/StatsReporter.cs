@@ -4,6 +4,10 @@ using System.Threading;
 
 namespace Berberis.StatsReporters;
 
+/// <summary>
+/// Tracks throughput, bandwidth, and service time metrics for a named source.
+/// Thread-safe for concurrent recording; statistics are interval-based.
+/// </summary>
 public sealed class StatsReporter
 {
     private long _totalMessages;
@@ -21,6 +25,9 @@ public sealed class StatsReporter
 
     private volatile bool _changed;
 
+    /// <summary>
+    /// Gets the name of this reporter's data source.
+    /// </summary>
     public string Source { get; }
 
     private readonly Action<StatsReporter> _disposeAction;
@@ -28,6 +35,11 @@ public sealed class StatsReporter
 
     public StatsReporter(string source) : this(source, null) { }
 
+    /// <summary>
+    /// Creates a reporter for the specified source.
+    /// </summary>
+    /// <param name="source">Name identifying this metric source.</param>
+    /// <param name="disposeAction">Optional cleanup action when disposed.</param>
     public StatsReporter(string source, Action<StatsReporter> disposeAction)
     {
         Source = source;
@@ -36,11 +48,18 @@ public sealed class StatsReporter
         _lastTicks = Stopwatch.GetTimestamp();
     }
 
+    /// <summary>
+    /// Starts timing an operation. Returns a timestamp to pass to <see cref="Stop(long)"/>.
+    /// </summary>
     public long Start()
     {
         return Stopwatch.GetTimestamp();
     }
 
+    /// <summary>
+    /// Records completion of an operation started with <see cref="Start"/>.
+    /// </summary>
+    /// <param name="startTicks">Timestamp from <see cref="Start"/>.</param>
     public void Stop(long startTicks)
     {
         Interlocked.Increment(ref _totalMessages);
@@ -49,6 +68,11 @@ public sealed class StatsReporter
         _changed = true;
     }
 
+    /// <summary>
+    /// Records completion of an operation with byte count.
+    /// </summary>
+    /// <param name="startTicks">Timestamp from <see cref="Start"/>.</param>
+    /// <param name="bytes">Number of bytes processed.</param>
     public void Stop(long startTicks, long bytes)
     {
         Interlocked.Increment(ref _totalMessages);
@@ -58,6 +82,12 @@ public sealed class StatsReporter
         _changed = true;
     }
 
+    /// <summary>
+    /// Records pre-calculated metrics without using <see cref="Start"/>/<see cref="Stop"/>.
+    /// </summary>
+    /// <param name="units">Number of operations completed.</param>
+    /// <param name="serviceTimeMs">Total service time in milliseconds.</param>
+    /// <param name="bytes">Total bytes processed.</param>
     public void Record(long units, float serviceTimeMs, long bytes)
     {
         Interlocked.Add(ref _totalMessages, units);
@@ -76,6 +106,9 @@ public sealed class StatsReporter
         _changed = true;
     }
 
+    /// <summary>
+    /// Computes interval-based statistics since last call. Resets interval counters.
+    /// </summary>
     public Stats GetStats()
     {
         var totalMesssages = Interlocked.Read(ref _totalMessages);
@@ -115,10 +148,16 @@ public sealed class StatsReporter
             avgServiceTime);
     }
 
+    /// <summary>
+    /// Gets whether any metrics have changed since last <see cref="GetStats"/> call.
+    /// </summary>
     public bool IsChanged => _changed;
 
     public void Dispose() => _disposeAction?.Invoke(this);
 
+    /// <summary>
+    /// Returns elapsed time in seconds since the given timestamp.
+    /// </summary>
     public static float ElapsedSince(long ticks)
     {
         return (Stopwatch.GetTimestamp() - ticks) / (float)Stopwatch.Frequency;

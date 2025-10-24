@@ -2,6 +2,9 @@
 
 namespace Berberis.StatsReporters;
 
+/// <summary>
+/// Network interface statistics for bytes sent/received.
+/// </summary>
 public readonly struct NetworkStats
 {
     public readonly float IntervalMs;
@@ -24,6 +27,9 @@ public readonly struct NetworkStats
     }
 }
 
+/// <summary>
+/// Per-interface network statistics.
+/// </summary>
 public readonly struct InterfaceStats
 {
     public readonly long BytesReceived;
