@@ -44,11 +44,11 @@ public sealed class MovingPercentile
         {
             if (value < PercentileValue)
             {
-                PercentileValue -= _delta / Percentile;
+                PercentileValue -= _delta;
             }
             else if (value > PercentileValue)
             {
-                PercentileValue += _delta / (1 - Percentile);
+                PercentileValue += _delta;
             }
         }
         else

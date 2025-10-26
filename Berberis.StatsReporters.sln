@@ -9,6 +9,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Berberis.StatsReporters.Tests", "tests\Berberis.StatsReporters.Tests\Berberis.StatsReporters.Tests.csproj", "{46F7C94A-3548-4F2D-98A4-19FC7FE19150}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{5D20AA90-6969-D8BD-9DCD-8634F4692FDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreadPoolLatencyDemo", "samples\ThreadPoolLatencyDemo\ThreadPoolLatencyDemo.csproj", "{D1E454F1-0B78-42B6-976D-9DFAFF82FB20}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,12 +47,25 @@ Global
 		{46F7C94A-3548-4F2D-98A4-19FC7FE19150}.Release|x64.Build.0 = Release|Any CPU
 		{46F7C94A-3548-4F2D-98A4-19FC7FE19150}.Release|x86.ActiveCfg = Release|Any CPU
 		{46F7C94A-3548-4F2D-98A4-19FC7FE19150}.Release|x86.Build.0 = Release|Any CPU
+		{D1E454F1-0B78-42B6-976D-9DFAFF82FB20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1E454F1-0B78-42B6-976D-9DFAFF82FB20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1E454F1-0B78-42B6-976D-9DFAFF82FB20}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D1E454F1-0B78-42B6-976D-9DFAFF82FB20}.Debug|x64.Build.0 = Debug|Any CPU
+		{D1E454F1-0B78-42B6-976D-9DFAFF82FB20}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D1E454F1-0B78-42B6-976D-9DFAFF82FB20}.Debug|x86.Build.0 = Debug|Any CPU
+		{D1E454F1-0B78-42B6-976D-9DFAFF82FB20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1E454F1-0B78-42B6-976D-9DFAFF82FB20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1E454F1-0B78-42B6-976D-9DFAFF82FB20}.Release|x64.ActiveCfg = Release|Any CPU
+		{D1E454F1-0B78-42B6-976D-9DFAFF82FB20}.Release|x64.Build.0 = Release|Any CPU
+		{D1E454F1-0B78-42B6-976D-9DFAFF82FB20}.Release|x86.ActiveCfg = Release|Any CPU
+		{D1E454F1-0B78-42B6-976D-9DFAFF82FB20}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{46F7C94A-3548-4F2D-98A4-19FC7FE19150} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{D1E454F1-0B78-42B6-976D-9DFAFF82FB20} = {5D20AA90-6969-D8BD-9DCD-8634F4692FDA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0FC150A6-0250-401D-B449-BACD6AE7FB0F}

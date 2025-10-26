@@ -9,7 +9,7 @@
 
 	<PropertyGroup>
 		<PackageId>Berberis.StatsReporters</PackageId>
-		<Version>1.1.7</Version>
+		<Version>1.1.8</Version>
 		<Company>Azik Gudratov</Company>
 		<Authors>Azik Gudratov</Authors>
 		<PackageDescription>High-performance real-time monitoring and metrics collection library for .NET applications. Track system resources, network activity, operation throughput, latency percentiles, and thread pool metrics with minimal overhead. Includes ASP.NET Core integration.</PackageDescription>

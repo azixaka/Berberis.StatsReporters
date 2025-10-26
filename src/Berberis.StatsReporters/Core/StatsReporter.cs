@@ -10,17 +10,23 @@ namespace Berberis.StatsReporters;
 /// </summary>
 public sealed class StatsReporter
 {
+    // Hot fields: Updated frequently by multiple threads concurrently
+    // Grouped together and padded to prevent false sharing with cold fields
     private long _totalMessages;
-    private long _lastMessages;
-
     private long _totalServiceTicks;
-    private long _lastServiceTicks;
-
     private double _totalServiceTime;
-
     private long _totalBytes;
-    private long _lastBytes;
 
+    // Padding to ensure hot fields are on separate cache line from cold fields
+    // Cache lines are typically 64 bytes; 7 longs = 56 bytes padding
+#pragma warning disable CS0169 // Field is never used - intentional padding for cache line alignment
+    private long _padding1, _padding2, _padding3, _padding4, _padding5, _padding6, _padding7;
+#pragma warning restore CS0169
+
+    // Cold fields: Only accessed during GetStats() under lock
+    private long _lastMessages;
+    private long _lastServiceTicks;
+    private long _lastBytes;
     private long _lastTicks;
 
     private volatile bool _changed;
@@ -65,7 +71,9 @@ public sealed class StatsReporter
         Interlocked.Increment(ref _totalMessages);
         Interlocked.Add(ref _totalServiceTicks, Stopwatch.GetTimestamp() - startTicks);
 
-        _changed = true;
+#pragma warning disable CS0420 // Reference to volatile field - Volatile.Write provides correct semantics
+        Volatile.Write(ref _changed, true);
+#pragma warning restore CS0420
     }
 
     /// <summary>
@@ -79,7 +87,9 @@ public sealed class StatsReporter
         Interlocked.Add(ref _totalServiceTicks, Stopwatch.GetTimestamp() - startTicks);
         Interlocked.Add(ref _totalBytes, bytes);
 
-        _changed = true;
+#pragma warning disable CS0420 // Reference to volatile field - Volatile.Write provides correct semantics
+        Volatile.Write(ref _changed, true);
+#pragma warning restore CS0420
     }
 
     /// <summary>
@@ -103,7 +113,9 @@ public sealed class StatsReporter
 
         Interlocked.Add(ref _totalBytes, bytes);
 
-        _changed = true;
+#pragma warning disable CS0420 // Reference to volatile field - Volatile.Write provides correct semantics
+        Volatile.Write(ref _changed, true);
+#pragma warning restore CS0420
     }
 
     /// <summary>
